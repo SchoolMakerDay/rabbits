@@ -3,12 +3,12 @@
 
 <b>Cosa è RABBITS</b><br>
 Rabbits è un sistema di gestione dei dati IoT basato su uno schema a tre strati (field/broker/panel).<br>
-<img src="https://github.com/SchoolMakerDay/rabbits/blob/main/img/three-tier-iot.jpg" /><br>
-L’elemento centrale è il Broker, una applicazione PHP server side che archivia in un database SQLite coppie “chiave/valore”.
-Le coppie chiave valore possono essere create, lette, modificate attraverso API inviate mediante il protocollo HTTP inserendo i dati come parametri di GET.
-I dispositivi embedded IoT (field) possono inviare dati dei sensori al broker che li memorizza o possono chiedere, in polling lo stato di comandi memorizzati nel broker per comandare gli attuatori.
-Per l’interazione umana con il sistema è disponibile una web app configurabile (panel) che consente di visualizzare e comandare attraverso  widget.
-E’ anche disponibile una dashboard per l’amministrazione delle coppie chiave/valore.
+<img src="https://github.com/SchoolMakerDay/rabbits/blob/main/img/three-tier-iot.jpg" width="25%" height="25%" /><br>
+L’elemento centrale è il Broker, una applicazione PHP server side che archivia in un database SQLite coppie “chiave/valore”.<br>
+Le coppie chiave valore possono essere create, lette, modificate attraverso API inviate mediante il protocollo HTTP inserendo i dati come parametri di GET.<br>
+I dispositivi embedded IoT (field) possono inviare dati dei sensori al broker che li memorizza o possono chiedere, in polling lo stato di comandi memorizzati nel broker per comandare gli attuatori.<br>
+Per l’interazione umana con il sistema è disponibile una web app configurabile (panel) che consente di visualizzare e comandare attraverso  widget.<br>
+E’ anche disponibile una dashboard per l’amministrazione delle coppie chiave/valore.<br>
 
 <b>Installazione del sw RABBITS</b><br>
 Il sistema può essere utilizzato nella sua versione già installata sulla piattaforma SMD oppure può essere installato localmente su una macchina di sviluppo.
