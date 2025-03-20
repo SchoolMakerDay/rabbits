@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="it" class="community-no-js">
+    <head>
+        <!-- 
+        @date 09 02 2023
+        @author Giovanni Ragno
+        @copyright https://creativecommons.org/licenses/by-sa/4.0/
+        -->
+        <meta charset="UTF-8">
+        <link rel="manifest" href="/rabbits/dashboard/manifest.json">
+        <!-- meta name="theme-color" content="#cc194b"/ -->
+        <link rel="apple-touch-icon" href="images/152x152.png">
+        <meta name="apple-mobile-web-app-capable" content="yes"> 
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="SMD Broker Dashboard">
+        <meta name="application-name" content="SMD Broker Dashboard" />
+        <meta name="msapplication-TileImage" content="images/144x144.png"> 
+        <!-- meta name="msapplication-TileColor" content="#cc194b" -->
+        <title>SMD Rabbits Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="css/style.css" rel="stylesheet">
+        <script src="vendor/jquery/jquery-3.6.0.min.js"></script>
+        <style>
+            body{
+                /*background-color: #cc194b;*/
+            }
+            #newkeydiv{
+                background: lightcyan;
+                padding: 5px;
+            }
+            .keydiv{
+                margin: 5px;
+                padding: 5px;
+                border: #333 solid thin;
+            }
+            .readonly{
+                background: lightgray;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="header" style="background: #EEE;">
+            <h1 style="min-height:120px"><img style="float: left;margin-right: 5px" src="images/logo_rabbits-120.png" alt="SMD Rabbits"></h1>
+			<h1 style="clear:left">Dashboard</h1>
+		</div>
+        <div id="content">
+<h3>Gestione multipla di chiavi</h3>
+<p>
+    Per la gestione di chiavi su broker inserire nel form qui sotto una o più chiavi di proprio interesse, tenendo presente che 
+    per chiavi destinate a comando è necessario indicarle come editabili (senza spunta a ReadOnly), 
+    mentre per chiavi destinate a stato è bene renderle non modificabili (spuntando ReadOnly)
+</p>
+<div id="newkeydiv">
+            <p>Inserisci una chiave da aggiungere in dashboard:</p>
+            <form id="newkeyform" method="GET">
+                Chiave: <input id='newkey' name='newkey'> 
+                <span id="rospan"> <input type="checkbox" id="newkeyro" name="newkeyro" > ReadOnly </span>
+                <input type="submit" value="aggiungi">
+            </form>
+</div>      
+<div id="dashboard">
+</div>
+<div>
+    <div>Server time: <span id="time">hh:mm:ss</span> <span id="updating">updating . . .</span></div>
+</div>
+<div>
+    <p class="main"><a id="doclink" href="..">Documentazione API</a></p>
+</div>
+<script async>
+window.onload = () => {
+	'use strict'; 
+	if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('./service-worker.js');
+		console.log("serviceWorker register");
+	}
+}
+
+
+// This variable will save the event for later use.
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevents the default mini-infobar or install dialog from appearing on mobile
+  e.preventDefault();
+  // Save the event because you'll need to trigger it later.
+  deferredPrompt = e;
+  // Show your customized install prompt for your PWA
+  // Your own UI doesn't have to be a single element, you
+  // can have buttons in different locations, or wait to prompt
+  // as part of a critical journey.
+  showInAppInstallPromotion();
+});
+
+function showInAppInstallPromotion(){
+	alert("Questa app può essere installata sul tuo device, apri il menu del browser e scegli la voce 'Installa App'.");
+}
+</script>
+<script>
+// variabili
+//var baseurl="https://www.schoolmakerday.it/rabbits/";var baseurl="https://localhost/rabbits/";
+var keys=[];
+var keysAtt={};
+var interval=null;
+var cookieKeys="smd_broker_dashboard_keys";
+var cookieKeysAtt="smd_broker_dashboard_keys_att";
+const daysToExpire = new Date(2147483647 * 1000).toUTCString();
+// main script ----------------------    
+console.log("Main start");
+$("#newkeyform").submit(addNewKey);
+//per comodità in sviluppo --
+//addKeyDiv("idccmdon",false);
+//addKeyDiv("idccmdtemp",false);
+//addKeyDiv("idcstaon",true);
+//addKeyDiv("idcstatemp",true);
+//console.log(keys);
+//per comodità in sviluppo --
+mainCheckCookie();
+$("#updating").hide();
+interval=setInterval(eachsecond, 1000);
+$(document).ready(function(){
+    $("#doclink").attr('href',baseurl);
+});
+// main script end ------------------    
+
+// cookie management ----------------
+
+function mainCheckCookie(){
+    if (checkACookieExists(cookieKeys)){
+        var ks=JSON.parse(getCookieValue(cookieKeys));
+        var att=JSON.parse(getCookieValue(cookieKeysAtt));
+        for (i=0;i<ks.length;i++){
+            addKeyDiv(ks[i],att[ks[i]]);
+        }
+    }
+}
+
+function keysToCookie(){
+    setCookieValue(cookieKeys,JSON.stringify(keys));
+    setCookieValue(cookieKeysAtt,JSON.stringify(keysAtt));
+}
+
+function checkACookieExists(key) {
+//    console.log(key+'=');
+//    console.log(document.cookie.split(';'));
+  if (document.cookie.split(';').some((item) => item.trim().startsWith(key+'='))) {
+      return true;
+  }
+  return false;
+}
+function getCookieValue(key){
+  return document.cookie.split(';').find((item) => item.trim().startsWith(key+'='))?.split('=')[1];
+}
+function setCookieValue(key,value){
+//    document.cookie = key+"="+value+"; expires="+daysToExpire;
+    document.cookie = key+"="+value+"; expires="+daysToExpire+"; SameSite=None; Secure";
+}
+// cookie management end ------------
+
+function addNewKey(){
+    var key=$("#newkey").val();
+    if ($("#"+key+"div").length){
+        alert("Chiave già esistente, impossibile aggiungere.");
+        return false;
+    }
+    var ro=$('#newkeyro').is(":checked");
+    console.log("Add "+(ro?"readonly ":"")+"key : "+key);
+    addKeyDiv(key,ro);
+    return false;
+}
+
+function addKeyDiv(key,ro){
+    $("#dashboard").append(generateKeyDiv(key));
+    if(ro){
+        $("#"+key+"value").attr("readonly", true);
+        $("#"+key+"div").addClass("readonly");
+        $("#updid"+key).hide();
+    }
+    keys.push(key);  
+    keysAtt[key]=ro;
+    keysToCookie();
+    $("#updid"+key).click(updateKey);
+    $("#delid"+key).click(removeKey);
+}
+
+function generateKeyDiv(key){
+  return '<div id="'+key+'div" class="keydiv">'+
+          '<h3>Key <span id="'+key+'" class="keyid">'+key+'</span></h3>'+
+          '<p>Value: <input id="'+key+'value" name="'+key+'value" value="" class="keyvalue"><br>'+
+          'Ts: <span id="'+key+'ts" class="keyts"></span><br>'+
+          '<button id="updid'+key+'" class="keyupd">aggiorna valore</button> <button id="delid'+key+'" class="keydel">Elimina chiave</button></p>'+
+          '</div>';
+}
+
+function updateKey(){
+    var key=$(this).attr("id").substring(5);
+    console.log("update "+key);
+    $.ajax(baseurl+"set.php?key="+key+"&value="+$("#"+key+"value").val()).done(setCallback);
+}
+
+function setCallback(data){
+    if (data.status=='OK'){
+            var all=data.data;
+            var key=all.key;
+            console.log(all);
+            $("#"+key+"value").val(all.value);
+            $("#"+key+"ts").html(all.ts);
+    }
+}
+
+function removeKey(){
+//    var key='';
+    var key=$(this).attr("id").substring(5);
+    if(confirm("Sei sicuro di rimuovere key "+key+" ?")){
+        console.log("rimuovi "+key);
+        $("#"+key+"div").remove();
+        //rimuovi da keys
+        var i = keys.indexOf(key);
+        if (i>-1) { 
+          keys.splice(i,1); 
+          delete keysAtt[key];
+          keysToCookie();
+        }
+    }
+    else {
+        console.log("annulla rimuovi "+key);
+    }
+}
+
+function eachsecond(){
+    $("#updating").show();
+    $.ajax(baseurl+"time.php").done(timeCallback);
+    $.ajax(baseurl+"getkeys.php?keys="+JSON.stringify(keys)).done(refreshKeysCallback);
+}
+
+function timeCallback(data){
+    if (data.status=='OK'){
+            var t=data.data;
+            var time=t.hour+':'+t.minute+':'+t.second;
+            $("#time").html(time);
+    }
+    $("#updating").hide();
+}
+
+function refreshKeysCallback(data){
+    if (data.status=='OK'){
+            var all=data.data;
+//            console.log(all);
+            for (i=0;i<keys.length;i++){
+                if (all[keys[i]] && !$("#"+keys[i]+"value").is(":focus")){                    
+                    $("#"+keys[i]+"value").val(all[keys[i]].value);
+                    $("#"+keys[i]+"ts").html(all[keys[i]].ts);
+                }
+            }
+    }
+}
+</script>
+        </div>
+        <div id="footer">
+		<p>
+                    Realizzato per <a href="https://www.schoolmakerday.it/">SchoolMakerDay</a> 2023<br>
+                    Copyleft <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>
+                </p>
+        </div>
+    </body>
+</html>

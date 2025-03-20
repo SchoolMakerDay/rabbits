@@ -1,0 +1,6 @@
+# Apache configuration file (see httpd.apache.org/docs/2.2/mod/quickreference.html)
+
+#force https protocol
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
