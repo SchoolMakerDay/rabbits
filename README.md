@@ -29,7 +29,7 @@ char serverAddress[] = "www.schoolmakerday.it"; <br>
 int port = 80;<br>
 Nel caso di installazione locale il serverAddress deve essere il numero IP del computer che ospita il server Web e deve essere nella stessa rete locale.<br>
 
-<b>Utilizzo del sw RABBITS</b>
+<b>Utilizzo del sw RABBITS</b><br>
 La documentazione delle API è disponibile all’URL:<br>
 https://www.schoolmakerday.it/rabbits/<br>
 La dashboard di amministrazione delle coppie chiave/valore è disponibile all’URL:<br>
