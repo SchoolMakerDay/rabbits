@@ -18,7 +18,7 @@ Nei file /rabbits/dashboard/index.html e /rabbits/panel/index.html si deve sosti
 var baseurl="https://www.schoolmakerday.it/rabbits/"; <br>
 con la definizione:<br>
 var baseurl="https://localhost/rabbits/";<br>
-Nei dispositivi emdedded, per comunicare con il broker è necessario definire (vedi sezione <a href="">Hackathon-esempi-Arduino-R4-Wifi</a> in questo stesso Github):<br>
+Nei dispositivi emdedded, per comunicare con il broker è necessario definire (vedi sezione <a href="https://github.com/SchoolMakerDay/Hackathon-esempi-Arduino-R4-Wifi">Hackathon-esempi-Arduino-R4-Wifi</a> in questo stesso Github):<br>
 - URL del sever
 - porta di accesso
 - SSID e PWD della rete locale in cui l’embedded è inserito 
