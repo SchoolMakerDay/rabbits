@@ -2,7 +2,8 @@
 <b>Rabbits A Basic Browser for Internet of ThingS</b>
 
 <b>Cosa è RABBITS</b><br>
-Rabbits è un sistema di gestione dei dati IoT basato su uno schema a tre strati (field/broker/panel).
+Rabbits è un sistema di gestione dei dati IoT basato su uno schema a tre strati (field/broker/panel).<br>
+<img src="https://github.com/SchoolMakerDay/rabbits/blob/main/img/three-tier-iot.jpg" /><br>
 L’elemento centrale è il Broker, una applicazione PHP server side che archivia in un database SQLite coppie “chiave/valore”.
 Le coppie chiave valore possono essere create, lette, modificate attraverso API inviate mediante il protocollo HTTP inserendo i dati come parametri di GET.
 I dispositivi embedded IoT (field) possono inviare dati dei sensori al broker che li memorizza o possono chiedere, in polling lo stato di comandi memorizzati nel broker per comandare gli attuatori.
