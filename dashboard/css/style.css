@@ -1,0 +1,117 @@
+/* 
+    Created on : 14 dic 2021, 07:59:46
+    Author     : gianni
+*/
+html,body{
+  margin:0;padding:0;
+}
+
+body{
+  font: 100% arial,sans-serif;
+  /*font-size: 1vw;*/
+}
+
+p{
+  margin:0 10px 10px;
+}
+
+a{
+  color: #981793;
+  padding:10px;
+}
+
+table {
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+table, th, td {
+    border: 1px solid black;
+    padding: 3px;
+}
+
+/* page sections */
+
+/* header */
+div#header h1{
+  background: #EEE;
+}
+
+div#header h1{
+  height:80px;
+  line-height:80px;
+  margin:0;
+  padding-left:10px;
+  color: #79B30B;
+}
+
+div#header h1>a {
+    text-decoration: none;
+    color: #79B30B;
+}
+
+/* navigation bar */
+div#navigation{
+  background:#B9CAFF;
+}
+
+div#navigation ul{
+}
+
+div#navigation li{
+    list-style: none;
+    display: inline;
+}
+
+div#navigation a{
+  text-decoration: none;
+}
+
+div#navigation .selected{
+  background:#EEE;
+}
+
+/* content */
+div#content h2.main{
+    color:goldenrod;
+}
+
+div#content{
+  padding-left: 10px;
+}
+
+div#content p{
+  line-height:1.4;
+}
+div#content pre{
+  padding-left: 30px;
+  /*background-color:#EEE;*/
+}
+
+div#content pre a{
+  text-decoration: none;
+}
+
+div#content .api{
+    padding:10px;
+    background-color:beige;
+}
+
+div#content .webapp{
+    padding:8px;
+    background-color:lavender;
+}
+
+/* footer */
+div#footer{
+  margin-top:20px;
+  background: #333;
+  color: #FFF;
+}
+
+div#footer p{   
+  margin:0;
+  padding:5px 10px;
+}
+
+
