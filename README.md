@@ -3,7 +3,7 @@
 
 <b>Cosa è RABBITS</b><br>
 Rabbits è un sistema di gestione dei dati IoT basato su uno schema a tre strati (field/broker/panel).<br>
-<center><img src="https://github.com/SchoolMakerDay/rabbits/blob/main/img/three-tier-iot.jpg" width="50%" height="50%" /></center><br>
+<img src="https://github.com/SchoolMakerDay/rabbits/blob/main/img/three-tier-iot.jpg" width="50%" height="50%" />
 L’elemento centrale è il Broker, una applicazione PHP server side che archivia in un database SQLite coppie “chiave/valore”.<br>
 Le coppie chiave valore possono essere create, lette, modificate attraverso API inviate mediante il protocollo HTTP inserendo i dati come parametri di GET.<br>
 I dispositivi embedded IoT (field) possono inviare dati dei sensori al broker che li memorizza o possono chiedere, in polling lo stato di comandi memorizzati nel broker per comandare gli attuatori.<br>
