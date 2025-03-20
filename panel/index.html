@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="it" class="community-no-js">
+    <head>
+        <!-- 
+        @date 02 03 2025
+        @author Duilio Peroni
+        @copyright https://creativecommons.org/licenses/by-sa/4.0/
+		IoT Panel
+		Panels element content:
+			0 Panel type (text,gauge,chart,mean,median,mode,variance,switch,cursor)
+			1 Description
+			2 Data source (key)
+			3 Data type (V=last/L=log)
+			4 Max value
+			5 Min value
+			4 Upper threshold
+			5 Lower threshold
+			6 Refresh rate (min 1 s)
+			7 Refresh unit count (s)
+			8 Data value
+			9 Element validity (0=invalid, 1=valid)
+        -->
+        <meta charset="UTF-8">
+        <link rel="manifest" href="/rabbits/panel/manifest.json">
+        <link rel="apple-touch-icon" href="images/152x152.png">
+        <meta name="apple-mobile-web-app-capable" content="yes"> 
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="Rabbits SMD Panel">
+        <meta name="application-name" content="Rabbits SMD Panel" />
+        <meta name="msapplication-TileImage" content="images/144x144.png"> 
+        <title>Rabbits SMD Panel</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="css/style.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/w3.css">
+        <link rel="stylesheet" href="css/modal.css">
+		<link rel="stylesheet" href="css/gauge.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">		
+		<script src="vendor/jquery/jquery-3.6.0.min.js"></script>
+		<script src="vendor/gauge/gauge.min.js"></script>
+		<link rel="stylesheet" href="vendor/canvas-gauge/fonts/fonts.css">
+		<script src="vendor/canvas-gauge/gauge.min.js"></script>	
+		<script src="vendor/chart/ej2/dist/ej2.min.js" type="text/javascript"></script>
+		<script src="vendor/chart/ej2/dist/syncfusion-helper.js" type="text/javascript"></script>		
+		<style>
+			.swsld {
+				display: block;
+				margin-bottom: 1em;
+				width: 80%;
+			}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: red;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px red;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}		
+			meter {
+				display: block;
+				margin-bottom: 1em;
+				width: 50%;
+			}
+            body{
+                /*background-color: #cc194b;*/
+            }
+            #newpaneldiv{
+                background: white;
+                padding: 0px;
+            }
+            .paneldiv{
+                margin: 5px;
+                padding: 0px;
+                border: #333 solid thin;
+				background: white;
+            }			
+            .readonly{
+                background: lightgray;
+            }
+			.phead{
+                margin: 0px;
+                padding: 5px;
+            	background-color:#EEE;
+			}
+			.pdesc{
+				margin-top:0;
+				margin-bottom:0
+            }
+			.btn {
+			  background-color: #077e98;
+			  border: none;
+			  color: white;
+			  padding: 12px 16px;
+			  font-size: 16px;
+			  cursor: pointer;
+			  border-radius: 8px;
+			}
+			.btn:hover {
+				background-color: #ff6633;
+			}
+			.btndiv{
+				margin:0px;
+			}
+			.dscdiv{
+				margin:0px; 
+				height: 3rem; 
+				line-height: 3rem;
+			}
+			.wdgdiv{
+                margin: 4px;
+                padding: 4px;
+            }
+			.wtext{
+				text-align: center;
+				background-color: #eee;
+				border: none;
+				font-weight: 400;
+				font-size: 24px;
+			}
+			.wmeter{
+			
+			}
+        </style>
+    </head>
+    <body>
+<!-- config box -->
+<div style="display:none" id="cfgbox" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+	<div class="w3-row"> 
+		<div class="w3-col  l8 m8 s8 w3-left "><b>Configure widget</b></div> 
+		<div class="w3-col  l2 m2 s2  w3-center ">&nbsp;</div> 
+		<div style="text-align:right" class="w3-col  l2 m2 s2"><button style="padding:2px 12px;" class="btn" onclick="closeCfg();"><i class="fa fa-close" ></i></button></div>
+    </div>
+	</div>
+    <div class="modal-body">	
+		<div class="w3-row" style="padding:4px;">
+		<div style="text-align:right" class="w3-col  l4 m4 s4 ">
+			<label for="selw">Widget type<span style="color:red">*</span>:</label>
+		</div>	
+		<div  style="text-align:left" class="w3-col  l8 m8 s8 ">
+				<select id="selw" >
+				<option value="undefined" disabled >Select a widget ...</option>
+				<option value="text">Text</option>
+				<option value="meter">Linear meter</option>
+				<option value="gauge">Gauge</option>
+				<option value="chart">Histogram</option>
+				<!-- <option value="mean">Mean</option>
+				<option value="median">Median</option>
+				<option value="mode">Mode</option>
+				<option value="variance">Variance</option>
+				<option value="max">Max</option>
+				<option value="min">Min</option> -->
+				<option value="switch">Switch</option>
+				<option value="pot">Pot</option>
+			</select>
+		</div>
+		</div>
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="seld">Description<span style="color:red">*</span>:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="seld" name="seld" size="15"> 
+		</div>	
+		</div>	
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="sels">Data Source<span style="color:red">*</span>:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="sels" name="sels" size="15"> 
+		</div>	
+		</div>	
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="selmx">Max Value:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="selmx" name="selmx" size="15"> 
+		</div>		
+        </div>		
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="selmn">Min Value:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="selmn" name="selmn" size="15"> 
+		</div>	
+		</div>	
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="selu">Upper Threshold:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="selu" name="selu" size="15"> 
+		</div>	
+		</div>
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="sell">Lower Threshold:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="sell" name="sell" size="15"> 
+		</div>	
+		</div>	
+		<div class="w3-row"  style="padding:4px;">
+		<div  style="text-align:right" class="w3-col  l4 m4 s4  ">
+			<label for="selr">Refresh Rate<span style="color:red">*</span>:</label>
+		</div>
+		<div   style="text-align:left" class="w3-col  l8 m8 s8 ">
+			<input type="text" id="selr" name="selr" size="15"> 
+		</div>	
+		</div>	
+	</div>
+    <div class="modal-footer">
+	<div class="w3-row"> 
+		<div id="msg" class="w3-col  l8 m4 s4  w3-center ">&nbsp;</div> 
+		<div class="w3-col  l1 m4 s4  w3-center "><button style="padding:4px 12px" class="btn" onclick="cancelCfg();"><i class="fa fa-undo" ></i></button></div>
+		<div style="text-align:right" class="w3-col  l1 m4 s4   "><button id="saveconf" style="padding:4px 12px" class="btn" onclick="saveCfg();"><i class="fa fa-save" ></i></button></div>
+    </div>
+	</div>
+  </div>
+</div>
+        <div id="header" style="background: #EEE;">
+        <h1 style="min-height:120px"><img style="float: left;margin-right: 5px" src="images/logo_rabbits-120.png" alt="SMD Rabbits"></h1>
+		<h1 style="clear:left">IoT Panel</h1>
+		</div>
+		<div id="messages"></div>
+        <div class="w3-container" id="content">
+		<div id="config" class="w3-row">
+		<div style="margin-bottom:5px; margin-top:10px; "  class="w3-col  l12 m12 s12  "><p>Rabbits IoT Panel is an open source IoT platform for collecting, processing, presenting data and managing remote devices. For each key/value pair generated through the DataSource resource, you can generate multiple ways of data processing, analysis and visualization and implement commands</p></div>
+		</div>
+		<div  id="config" class="w3-row">
+		<div style="margin-bottom:5px; margin-top:10px; "  class="w3-col  l3 m3 s12  w3-center ">
+		<button class="btn" onclick="addNewPanel();"><i class="fa fa-plus" ></i> Add a panel</button>
+		</div>
+		<div style="margin-bottom:5px; margin-top:10px; "  class="w3-col  l3 m3 s12 w3-center ">
+		<button class="btn" onclick="openDash();"><i class="fa fa-cloud" ></i> DataSource</button>
+		</div>
+		<!--
+		<div style="margin-bottom:5px; margin-top:10px; "  class="w3-col  l3 m3 s12 w3-center ">
+		<button class="btn" onclick="download();"><i class="fa fa-download" ></i> &nbsp;Download&nbsp;</button>
+		</div>
+		<div style="margin-bottom:5px; margin-top:10px; "  class="w3-col  l3 m3 s12 w3-center ">
+		<button class="btn" onclick="upload();"><i class="fa fa-upload" ></i> &nbsp;Upload&nbsp;&nbsp;</button>
+		</div>
+		-->
+		<div class="w3-col  l12 m12 s12  w3-center "><hr style="border-top: 1px solid #eee !important"></div>	 
+		</div>
+		<div id="dashboard"> </div>
+		<div><p class="main"><span id="time">hh:mm:ss</span></p></div>
+		<div><p class="main"><a style="padding:0px;" id="doclink" href="..">API Documentation</a><span id="messages"></span></p></div>
+<script async>
+//al caricamento avvia service worker
+window.onload = () => {
+	'use strict'; 
+	if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('./service-worker.js');
+		//console.log("serviceWorker register");
+	}
+}
+// This variable will save the event for later use.
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+	// Prevents the default mini-infobar or install dialog from appearing on mobile
+	e.preventDefault();
+	// Save the event because you'll need to trigger it later.
+	deferredPrompt = e;
+	// Show your customized install prompt for your PWA
+	// Your own UI doesn't have to be a single element, you
+	// can have buttons in different locations, or wait to prompt
+	// as part of a critical journey.
+	showInAppInstallPromotion();
+});
+
+//avviso di installazione
+function showInAppInstallPromotion(){
+	alert("Questa app può essere installata sul tuo device, apri il menu del browser e scegli la voce 'Installa App'.");
+}
+</script>
+<script>
+ej.base.registerLicense('Ngo9BigBOggjHTQxAR8/V1NMaF1cXmhKYVZpR2Nbek5xdl9DaVZSRGY/P1ZhSXxWdkdhX35cdX1WRmBcUkY=');
+// variabili applicative
+const MAXCHARTLEN = 50;
+//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+const WTYPE = 0;
+const DESCR = 1;
+const DASRC = 2;
+const DTYPE = 3;
+const MXVAL = 4;
+const MNVAL = 5;
+const UPTHR = 6;
+const LWTHR = 7;
+const RRATE = 8;
+const RCONT = 9;
+const DTVAL = 10;
+const VALID = 11; 
+//url di base per le API
+//var baseurl="https://www.schoolmakerday.it/rabbits/";
+var baseurl="https://localhost/rabbits/";
+//var baseurl="https://192.168.1.140/rabbits/";
+var apiparm="";
+//intervallo di aggiornamento
+var interval=null;
+//array dei pannelli attivi
+var panels=[];
+var widgets=[];
+//nome dei cookies
+var cookiePanels="active_panels";
+//scadenza cookie
+const daysToExpire = new Date(2147483647 * 1000).toUTCString();
+// main script start ----------------------   
+//console.log("Main start");
+//console.log("0 panels len: "+panels.length);
+var modal = document.getElementById("cfgbox");
+var countparm=0;
+mainCheckCookie();
+//$("#updating").hide();
+interval=setInterval(eachsecond, 1000);
+$(document).ready(function(){
+    $("#doclink").attr('href',baseurl);
+});
+// main script end ------------------    
+// cookie management ----------------
+//all'avvio trasferisce i valori dai cookie alle variabili
+function mainCheckCookie(){
+    if (checkACookieExists(cookiePanels)){
+        var ps=JSON.parse(getCookieValue(cookiePanels));
+        for (i=0;i<ps.length;i++){
+            addPanelDiv(ps[i],i);
+			renderwdg(i);
+        }
+    }
+}
+//verifica se un cookie esiste
+function checkACookieExists(key) {
+  if (document.cookie.split(';').some((item) => item.trim().startsWith(key+'='))) {
+      return true;
+  }
+  return false;
+}
+//estrae il valore da un cookie
+function getCookieValue(key){
+  return document.cookie.split(';').find((item) => item.trim().startsWith(key+'='))?.split('=')[1];
+}
+//aggiorna il valore di un cookie
+function setCookieValue(key,value){
+    document.cookie = key+"="+value+"; expires="+daysToExpire+"; SameSite=None; Secure";
+}
+//Aggiorna i cookie dai valori dei pannelli
+function panelsToCookie(){
+    setCookieValue(cookiePanels,JSON.stringify(panels));
+}
+// cookie management end ------------
+//gestione pannellichiavi start ------------
+//aggiunge un elemento
+function addNewPanel(){
+	//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+	var p=["undefined","","","","","","","","","","",""];
+	//console.log(p[0]+" "+p[1]);
+	i=panels.length;
+	//console.log("1 panels len: "+i);
+    addPanelDiv(p,i);
+    return false;
+}
+
+//crea un nuovo div per l'elemento da aggiungere
+function addPanelDiv(panel,i){
+    //console.log("2 panels len: "+i);
+	$("#dashboard").append(generatePanelDiv(panel,i));
+	panels.push(panel);
+    widgets.push("");	
+	renderwdg(i);
+    panelsToCookie();
+}
+//genera il nuovo div
+function generatePanelDiv(panel,i){
+//console.log("3 panels len: "+i);
+return	'<div id="divpanel'+i+'" class="paneldiv">'+
+		'<div id="phead'+i+'" class="phead">'+
+		'<div  class="w3-row">'+
+		'<div class="btndiv w3-col  l1 m2 s2 w3-left "><button class="btn" onclick="confPanel('+i+');"><i class="fa fa-wrench" ></i></button></div>'+
+		'<div class="btndiv w3-col  l1 m2 s2 w3-left"><button  class="btn"  onclick="delPanel('+i+');"><i class="fa fa-trash"></i></button></div>'+
+		'<div class="dscdiv w3-col  l10 m8 s8 w3-left"><h5 class="pdesc"><span style="font-size:80%" id="desc'+i+'">'+panel[1]+'</span></h5></div>'+
+		'</div>'+
+		'</div>'+
+		'<div id="divwdg'+i+'" class="wdgdiv"></div>'+
+		'</div>';
+}
+
+//TO BE REMOVED aggiorna il valore
+function updateKey(){
+    var key=$(this).attr("id").substring(5);
+//    console.log("update "+key);
+    $.ajax(baseurl+"set.php?key="+key+"&value="+$("#"+key+"value").val()).done(setCallback);
+}
+
+
+//TO BE REMOVED risposta all'aggiornamento del valore
+function setCallback(data){
+    if (data.status=='OK'){
+            var all=data.data;
+            var key=all.key;
+            //console.log(all);
+            $("#"+key+"value").val(all.value);
+            $("#"+key+"ts").html(all.ts);
+    }
+}
+
+//temporizzazione 1 s
+function eachsecond(){
+	let now = new Date();
+	let hours = now.getHours();
+	let minutes = now.getMinutes();
+	let seconds = now.getSeconds();
+	//console.log(`Current Time: ${hours}:${minutes}:${seconds}`);
+	var time=hours+':'+minutes+':'+seconds;
+    $("#time").html(time);
+	refreshData();
+}
+
+function refreshData(){
+	//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+	console.log("refresh data");	
+	buildApiParam();
+	console.log(apiparm);
+	var api=baseurl+apiparm;
+	//console.log("api:"+api);
+	//console.log(countparm);
+	if(countparm!=0) { //call api
+		//console.log("call api");
+		jQuery.ajax({
+			url: api,
+			dataType: 'html',
+			success: function (data) {
+				var status = $.parseJSON(data).status;
+				//console.log(status);
+				if(status=="OK") {
+					//console.log("extracting logs -----------"); 
+					var logs = $.parseJSON( data ).logs;
+					var logslen = Object.keys(logs).length;
+					//console.log("elementi logs: "+logslen);
+					for(var k in logs){
+						//console.log("chiave: "+k);
+						var ary=logs[k];
+						//console.log("elementi array: "+ary.length);
+						for (var e in ary) {
+							//console.log("elemento "+e+":"+ary[e].value);						
+						}
+						//console.log("looking for lasts panels to update ------");
+						for(var i=0;i<panels.length;i++){
+							//console.log("looking panel:"+i);
+							if((panels[i][DASRC]==k)&&(panels[i][DTYPE]=='L')&&(panels[i][RCONT]>=panels[i][RRATE])){
+								//console.log("update logs panel"+i);
+								var log=[];
+								for(j=0;j<logs[k].length;j++){
+									var ts=logs[k][j].ts;
+									var value=logs[k][j].value;
+									log.push([ts,value]);
+								}
+								panels[i][DTVAL]=log;
+								panels[i][RCONT]=1;
+								panels[i][VALID]=1;
+								updatewdg(i);
+							}
+						}
+					}
+					//console.log("extracting lasts -----------"); 
+					var lasts = $.parseJSON( data ).lasts;
+					var lastslen = Object.keys(lasts).length;
+					//console.log("elementi lasts: "+lastslen);
+					for (var k in lasts) {
+						//console.log("chiave: "+k);
+						//console.log("valore: "+lasts[k].value);
+						//console.log("looking for lasts panels to update ------");
+						for(var i=0;i<panels.length;i++){
+							//console.log("looking panel:"+i);
+							if((panels[i][DASRC]==k)&&(panels[i][DTYPE]=='V')&&(panels[i][RCONT]>=panels[i][RRATE])) { //panel contain datasource, data type last 
+								//console.log("last panel updated:"+i);
+								panels[i][DTVAL]=lasts[k].value;
+								panels[i][RCONT]=1;
+								panels[i][VALID]=1;
+								updatewdg(i);
+							}
+						}
+					}
+					panelsToCookie();
+				}
+				else {
+					jQuery("#messages").html("JSON error");
+				}
+			},
+			error: function(){
+				jQuery("#messages").html("AJAX error");
+			},			
+		});
+	}
+	else {
+		//console.log("no parm:dont call api");
+	}
+}
+
+//apre DataSource in una nuova finestra
+function openDash(){
+    //console.log("opening dashboard");
+	window.open("../dashboard/index.html", '_blank').focus();
+}
+
+//salva la configurazione in formato JSON
+function download(){
+    //console.log("saving JSON config");
+	//TODO salva json
+	
+}//carica la configurazione in formato JSON
+function upload(){
+    //console.log("loading JSON config");
+	//TODO recupera JSON
+}
+
+//initialize config panel
+function confPanel(i){
+  //WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+  window.scrollTo(0,0);
+  $('#selw').val(panels[i][WTYPE]);
+  $("#seld").val(panels[i][DESCR]);
+  $("#sels").val(panels[i][DASRC]);
+  $("#selmx").val(panels[i][MXVAL]);
+  $("#selmn").val(panels[i][MNVAL]);
+  $("#selu").val(panels[i][UPTHR]);
+  $("#sell").val(panels[i][LWTHR]);
+  $("#selr").val(panels[i][RRATE]);  
+  $("#msg").html("&nbsp;");  
+  $("#saveconf").attr("onclick","saveCfg("+i+")");
+  modal.style.display = "block"; 
+  $("#cfgbox").show();
+}
+
+function delPanel(p){
+   //console.log("delete");
+   for (i=0;i<panels.length;i++){
+		$("#divpanel"+i).remove();
+   }
+   panels.splice(p,1);
+   document.cookie = "active_panels=; expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/rabbits/panel;";
+   panelsToCookie();
+   for (i=0;i<panels.length;i++){
+		$("#dashboard").append(generatePanelDiv(panels[i],i));
+		renderwdg(i);
+	}	
+}
+
+function cancelCfg(){
+   //console.log("cancel");
+    modal.style.display = "none";
+}
+
+//save widget configuration
+function saveCfg(i){
+	var status=1;
+	var rrate=$("#selr").val();
+	if(rrate.length==0){
+		status=0;
+		msg="Insert a refresh rate [s]";
+	}
+	if(Number.isInteger(parseInt(rrate))==false){
+		status=0;
+		msg="Refresh rate must be an integer";	
+	}
+	if(parseInt(rrate)<1){
+		status=0;
+		msg="Refresh rate must be greater than 0";			
+    }	
+	var llim=$("#sell").val();
+	if(llim.length>0) {
+		if(Number.isInteger(parseInt(llim))==false){
+			status=0;
+			msg="Lower threshold must be an integer";	
+		}
+	}	
+	var ulim=$("#selu").val();
+	if(ulim.length>0) {
+		if(Number.isInteger(parseInt(ulim))==false){
+			status=0;
+			msg="Upper threshold must be an integer";	
+		}
+	}	
+	var mnval=$("#selmn").val();
+	if(mnval.length>0) {
+		if(Number.isInteger(parseInt(mnval))==false){
+			status=0;
+			msg="Min value must be an integer";	
+		}
+	}	
+	var mxval=$("#selmx").val();
+	if(mxval.length>0) {
+		if(Number.isInteger(parseInt(mxval))==false){
+			status=0;
+			msg="Max value must be an integer";	
+		}
+	}	
+	var datasrc=$("#sels").val();
+	if(datasrc.length==0){
+		status=0;
+		msg="Insert a Data Source";
+	}	
+	var desc=$("#seld").val();
+	if(desc.length==0){
+		status=0;
+		msg="Insert a Description";
+	}		
+	var wtype=$("#selw").val();
+	if(wtype===null){
+		status=0;
+		msg="Select a widget type";
+	}
+	var dt="";
+	switch(wtype){
+		case "text":
+		case "gauge":
+		case "meter":
+		case "switch":
+		case "pot":
+			dt='V';
+			break;
+		default:
+			dt='L';
+	}
+	if (status==0) {
+	  //console.log("config err");	
+	  $("#msg").html('<span style="color:red">'+msg+'</span>');	
+	}
+	else {
+		//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+	  	panels[i][WTYPE]=wtype;
+		panels[i][DESCR]=desc;
+		panels[i][DASRC]=datasrc;
+		panels[i][DTYPE]=dt;
+		panels[i][MXVAL]=mxval;
+		panels[i][MNVAL]=mnval;
+		panels[i][UPTHR]=ulim;
+		panels[i][LWTHR]=llim;
+		panels[i][RRATE]=rrate;
+		panelsToCookie();
+		$("#desc"+i).html(desc);
+		$("#msg").html("&nbsp;");	
+		renderwdg(i);
+		modal.style.display = "none";
+	}
+
+ }
+
+//TODO: temporary panel rendering
+//render widget of selected panel with configured data
+function renderwdg(i){
+	//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+	//console.log("rendering wdg"+i);
+	var wtype=panels[i][WTYPE];
+	var wdg='';
+	switch(wtype){
+		case 'text':
+			//TODO: threshold
+			//console.log("rendering text");
+			wdg='<input type="text" class="wtext" id="wdg'+i+'" name="wdg'+i+'" size="10" readonly="true" >'; 
+			//console.log(wdg);
+			$("#divwdg"+i).html(wdg);			
+			break;
+		case 'meter':
+			//console.log("rendering meter");
+			var value=0;
+			var min=panels[i][MNVAL];
+			var max=panels[i][MXVAL];
+			var low=panels[i][LWTHR];
+			var high=panels[i][UPTHR];
+			wdg='MIN:'+min+' LOW:'+low+' HIGH:'+high+' MAX:'+max;
+			wdg+='<meter class="wmeter" id="wdg'+i+'" value="0" low="'+low+'" high="'+high+'" min="'+min+'" max="'+max+'" ></meter>'
+			//console.log(wdg);
+			$("#divwdg"+i).html(wdg);			
+			break;			
+		case 'gauge':
+			//console.log("rendering gauge");
+			wdg='<canvas id="wdg'+i+'"></canvas>';
+			$("#divwdg"+i).html(wdg);			
+			renderGauge(i);	
+			break;
+		case 'chart':
+			//console.log("rendering chart");
+			wdg='<div id="wdg'+i+'"></div>';
+			$("#divwdg"+i).html(wdg);			
+			renderChart(i);				
+			break;
+		case 'mean':
+			//console.log("rendering mean");
+			wdg='<input type="text" class="wtext" id="wdg'+i+'" name="wdg'+i+'" size="10" readonly="true" >'; 
+			//console.log(wdg);
+			$("#divwdg"+i).html(wdg);			
+			break;
+		case 'median':
+			//console.log("rendering median");
+			break;
+		case 'mode':
+			//console.log("rendering mode");
+			break;
+		case 'variance':
+			//console.log("rendering variance");		
+			break;
+		case 'max':
+			//console.log("rendering max");
+			break;
+		case 'min':
+			//console.log("rendering min");
+			break;
+		case 'switch':
+			//console.log("rendering switch");
+			wdg='<label class="switch"><input id="wdg'+i+'" type="checkbox" onclick="swchk('+i+')"><span class="slider round"></span></label>';
+			$("#divwdg"+i).html(wdg);	
+			break;
+		case 'pot':
+			//console.log("rendering pot");
+			var value=0;
+			var min=panels[i][MNVAL];
+			var max=panels[i][MXVAL];
+			wdg='<span id="wdg'+i+'-0">VALUE:0</span>';
+			wdg+='<input id="wdg'+i+'-1"  class="swsld"  type="range" min="'+min+'" max="'+max+'" value="'+value+'"  onchange="swsld('+i+')">';
+			$("#divwdg"+i).html(wdg);				
+			break;
+		default:
+			//console.log("undefined widget type");		
+	}
+}
+
+
+function swsld(i){
+	//console.log("comanding pot");
+	var wdg1="wdg"+i+"-0";
+	var wdg2="wdg"+i+"-1";
+//	var sldsta=$('#'+wdg2).value;
+	var sldsta=$('#'+wdg2).val();
+	//alert(sldsta);
+	//console.log("status:"+sldsta);
+	$('#'+wdg1).html('VALUE:'+sldsta);
+	var dsrc=panels[i][DASRC];
+	var swapi=baseurl+'set.php?key='+dsrc+'&value='+sldsta;
+	//console.log("api:"+swapi);
+	//alert(swapi);
+	jQuery.ajax({
+		url: swapi,
+		dataType: 'html',
+		success: function (data) {
+			var status = $.parseJSON(data).status;
+			//console.log(status);
+			if(status=="OK") {
+				//console.log("pot ok"); 
+			}
+			else {
+				jQuery("#messages").html("JSON error");
+				//console.log("json error"); 
+			}
+		},
+		error: function(){
+			jQuery("#messages").html("AJAX error");
+				//console.log("ajax error"); 
+		},			
+	});	
+}
+
+
+function swchk(i){
+	var wdg="wdg"+i;
+	var chksta=$('#'+wdg).is(":checked");
+	var dsrc=panels[i][DASRC];
+	var swapi=baseurl+'set.php?key='+dsrc+'&value=';
+	if (chksta==true){
+		swapi+='1';	
+	}
+	else {
+		swapi+='0';		
+	}
+	jQuery.ajax({
+		url: swapi,
+		dataType: 'html',
+		success: function (data) {
+			var status = $.parseJSON(data).status;
+			//console.log(status);
+			if(status=="OK") {
+				//console.log("switch ok"); 
+			}
+			else {
+				jQuery("#messages").html("JSON error");
+			}
+		},
+		error: function(){
+			jQuery("#messages").html("AJAX error");
+		},			
+	});	
+}
+
+function renderGauge(i){
+	var lwth=scaleGauge(panels[i][LWTHR],panels[i][MXVAL],panels[i][MNVAL]);
+	var upth=scaleGauge(panels[i][UPTHR],panels[i][MXVAL],panels[i][MNVAL]);
+	var min=panels[i][MNVAL];
+	var max=panels[i][MXVAL];
+	//console.log("low:"+lwth);
+	//console.log("high:"+upth);
+	var id="wdg"+i;
+	//console.log(id);
+	var target = document.getElementById(id); // your canvas element
+    var gauge = new RadialGauge({
+        renderTo: id,
+        width: 300,
+        height: 300,
+        units: "",
+        title: "",
+        startAngle: 90,
+        ticksAngle: 180,
+        colorPlate: "#ffffff",
+        //colorPlateEnd: "#ffffff",
+        colorUnits: "#3CA7DB",
+        colorNumbers: "#534638",
+        colorNeedle: "#8E7860",
+        colorNeedleEnd: "#8E7860",
+        colorNeedleCircleOuter: "#8E7860",
+        colorNeedleCircleOuterEnd: "#8E7860",
+        colorNeedleShadowUp: "#8E7860",
+        colorNeedleShadowDown: "#8E7860",
+        colorMajorTicks: ["#EBEBEB", "#EBEBEB", "#EBEBEB", "#EBEBEB", "#EBEBEB", "#EBEBEB"],
+        colorMinorTicks: "#EBEBEB",
+        minValue: 0,
+        maxValue: 100,
+        majorTicks: [min,"","",max],
+        minorTicks: "2",
+        strokeTicks: true,
+        highlights: [
+            {
+                "from": 0,
+                "to": lwth,
+                "color": "#FFB000"
+            },
+            {
+                "from": lwth,
+                "to": upth,
+                "color": "#00A000"
+            },
+            {
+                "from": upth,
+                "to": 100,
+                "color": "#FF0000"
+            }
+        ],
+        highlightsWidth: 25,
+        numbersMargin: 12,
+        animation: true,
+        animationRule: "linear",
+        animatedValue: true,
+        borders: false,
+        valueBox: false,
+        needleType: "arrow",
+        needleEnd: 65,
+        needleWidth: 4,
+        needleCircleSize: 10,
+        needleCircleInner: false,
+        needleCircleOuter: true,
+        needleShadow: false,
+        borderShadowWidth: 0
+    }).draw();
+    gauge.value = 0;
+    gauge.update();	
+	widgets[i]=gauge;
+}
+
+function renderChart(i){
+	var ds=new Array();
+	var chart;
+	var id="wdg"+i;
+	var ascissa=panels[i][DASRC];
+	//console.log(">>>"+ascissa+"<<<");
+	chart = new ej.charts.Chart({
+		//Initializing Primary X Axis
+		primaryXAxis: {
+			valueType: 'Category',
+			title: 'time',
+		},
+		//Initializing Primary Y Axis
+			primaryYAxis: {
+			title: ascissa
+		},
+		//Initializing Chart Series
+			series: [
+						{
+							type: 'Line',
+							width: 4, fill: 'red',
+							dataSource: ds,
+							xName: 'time',
+							yName: 'value',
+						}
+					],
+	});
+	chart.appendTo('#wdg'+i);
+	widgets[i]=chart;		
+}
+function scaleGauge(vx,vmax,vmin){
+	var scaled=((parseFloat(vx)-parseFloat(vmin))/(parseFloat(vmax)-parseFloat(vmin)))*100.0;
+	return scaled;
+}
+//TODO: temporary panel updating
+//update widget content with data received from API
+function updatewdg(i){
+	//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+	//console.log("updating wdg"+i+" with "+ panels[i][DTVAL]);
+	wtype=panels[i][WTYPE];
+	switch(wtype){
+		case 'text':
+			//TODO: threshold
+			//console.log("udpating text");
+			$("#wdg"+i).val(panels[i][DTVAL]);
+			//console.log($("#wdg"+i).val());		
+			break;
+		case 'meter':
+			//console.log("udpating meter");
+			$("#wdg"+i).val(panels[i][DTVAL]);			
+			break;
+		case 'gauge':
+			//console.log("udpating gauge");
+			var gauge=widgets[i];
+			//console.log("dato:"+Number(panels[i][DTVAL])+" max:"+Number(panels[i][MXVAL])+" min: "+Number(panels[i][MNVAL]));
+			var c0=Number(panels[i][DTVAL])-Number(panels[i][MNVAL]);
+			//console.log("c0:"+c0);
+			var c1=c0*100.0;
+			//console.log("c1:"+c1);
+			var c2=Number(panels[i][MXVAL])-Number(panels[i][MNVAL]);
+			//console.log("c2:"+c2);
+			var c3=c1/c2;
+			//console.log("c3:"+c3);
+			//var val=((Number(panels[i][DTVAL])+Number(panels[i][MNVAL]))*100.0)/(Number(panels[i][MXVAL])-Number(panels[i][MNVAL]));
+			//console.log(val);
+//			var c1=Number(panels[i][MXVAL])-Number(panels[i][MNVAL]);
+//			console.log(c1);
+//			var c2=c0/c1;
+//			console.log(c2);
+			var val=((Number(panels[i][DTVAL])-Number(panels[i][MNVAL]))*100.0)/(Number(panels[i][MXVAL])-Number(panels[i][MNVAL]));
+			//console.log("convertito:");
+			//console.log(val);
+			gauge.value = val;
+			break;
+		case 'chart':
+			//console.log("rendering chart");
+			var chart=widgets[i];
+			//---
+			var ds=[];
+			var ts="";
+			var value="";
+			var ary=panels[i][DTVAL];
+			//console.log("elementi array: "+ary.length);
+			for (var e in ary) {
+				const obj={}
+				ts=ary[e][0].substring(11);
+				value=Number(ary[e][1]);
+				obj.time=ts;
+				obj.value=value;
+				//console.log("elemento "+e+":"+obj.time);						
+				//console.log("elemento "+e+":"+obj.value);						
+				ds.push(obj);
+				//console.log(ds[e]);
+			}
+			if(ds.length>MAXCHARTLEN){
+				var trunc=[];
+				//console.log("truncate");
+				for(var i=0;i<MAXCHARTLEN;i++){
+					trunc[i]=ds[i];	
+					//console.log(trunc[i]);
+				}
+				ds=trunc;
+			}	
+			ds=ds.reverse();	
+			//--
+			chart.series[0].setData(ds, 0);
+			break;
+		case 'mean':
+		/*
+			console.log("updating mean");
+			var sum=0;
+			var mean=0;
+			var ds=[];
+			var ts="";
+			var value="";
+			var ary=panels[i][DTVAL];
+			for (var e in ary) {
+				value=Number(ary[e][1]);
+				console.log("value:"+value);
+				ds.push(value);
+			}
+			if(ds.length>MAXCHARTLEN){
+				var trunc=[];
+				for(var j=0;i<MAXCHARTLEN;j++){
+					trunc[j]=ds[j];	
+				}
+				ds=trunc;
+			}	
+			console.log("troncato:"+ds.length);
+			for (var e in ds) {
+				sum+=ds[e];
+				ds.push(value);
+			}		
+			console.log("somma:"+sum);
+			mean=sum/ds.length;
+			console.log("media:"+mean);
+			//$("#wdg"+i).val(mean);
+			console.log("wdg:"+i);
+			$("#wdg"+i).val(mean);
+		*/	
+			break;
+		case 'median':
+			//console.log("rendering median");
+			break;
+		case 'mode':
+			//console.log("rendering mode");
+			break;
+		case 'variance':
+			//console.log("rendering variance");		
+			break;
+		case 'max':
+			//console.log("rendering max");
+			break;
+		case 'min':
+			//console.log("rendering min");
+			break;
+		case 'switch':
+			console.log("rendering switch");
+			var sw=panels[i][DTVAL];
+			if (sw=="0"){
+				$("#wdg"+i).prop('checked',false);
+			}
+			else {
+				$("#wdg"+i).prop('checked',true);			
+			}
+			break;
+		case 'pot':
+			//console.log("updating pot");
+			var wdg1="wdg"+i+"-0";
+			var wdg2="wdg"+i+"-1";
+			var sl=panels[i][DTVAL];
+			//console.log("value"+sl);
+			$("#"+wdg1).html('VALUE:'+sl);
+			$("#"+wdg2).val(sl);
+			break;
+		default:
+			//console.log("undefined widget type");		
+	}
+}
+
+//close config pop-up window
+function closeCfg(){
+    modal.style.display = "none";
+}
+
+//build API string for Data Sourc query for widget timed out
+function buildApiParam(){
+	//WTYPE=0,DESCR=1,DASRC=2,DTYPE=3,MXVAL=4,MNVAL=5,UPTHR=6,LWTHR=7,RRATE=8,RCONT=9,DTVAL=10,VALID=11
+	countparm=0;
+	var lastsparm="getkeyslogs.php?lasts=[";
+	var logsparm="&logs=[";
+	for (i=0;i<panels.length;i++){
+		var wtype=panels[i][WTYPE];
+		var ds=panels[i][DASRC];
+		var rrate=panels[i][RRATE];
+		var rcount=panels[i][RCONT];
+		if(rcount>=rrate) { //count reached 
+			if (panels[i][DTYPE]=='V') { //dtype lasts
+				countparm++;
+				if (lastsparm.slice(-1)=="[") { //first
+					lastsparm=lastsparm+'"'+ds+'"';
+				}
+				else { //next
+					lastsparm=lastsparm+',"'+ds+'"';					
+				}
+			}
+			else {//dtype logs
+				if(panels[i][DTYPE]=='L'){
+					countparm++;
+					if (logsparm.slice(-1)=="[") { //first
+						logsparm=logsparm+'"'+ds+'"';
+					}
+					else { //next
+						logsparm=logsparm+',"'+ds+'"';					
+					}				
+				}
+			}
+		}
+		else { //count not reached: increment count
+			panels[i][RCONT]++;
+			panelsToCookie();
+		}
+	}
+	console.log(countparm);
+	lastsparm=lastsparm+"]";
+	logsparm=logsparm+"]";	
+	apiparm=lastsparm+logsparm;
+}
+</script>
+        </div>
+        <div id="footer">
+			<p>Realizzato per <a href="https://www.schoolmakerday.it/">SchoolMakerDay</a> 2025<br>Copyleft <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>
+        </div>
+    </body>
+</html>
+
