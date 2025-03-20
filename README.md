@@ -21,7 +21,8 @@ var baseurl="https://localhost/rabbits/";<br>
 Nei dispositivi emdedded, per comunicare con il broker è necessario definire (vedi sezione <a href="https://github.com/SchoolMakerDay/Hackathon-esempi-Arduino-R4-Wifi">Hackathon-esempi-Arduino-R4-Wifi</a> in questo stesso Github):<br>
 - URL del sever
 - porta di accesso
-- SSID e PWD della rete locale in cui l’embedded è inserito 
+- SSID e PWD della rete locale in cui l’embedded è inserito
+
 Nel caso di utilizzo del server SMD i parametri di configurazione sono:<br>
 char ssid[] = SECRET_SSID;<br> 
 char pass[] = SECRET_PASS;<br>
